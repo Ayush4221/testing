@@ -143,6 +143,7 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './src/store/store';
 import Topup from './src/pages/Topup';
+import BottomTabNavigator from './src/navigation/BottomTabNavigator';
 
 const Stack = createNativeStackNavigator();
 
@@ -152,11 +153,11 @@ const App = () => {
       <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
       <Stack.Navigator initialRouteName="Main">
-        <Stack.Screen
-          name="Main"
-          component={Landing}
-          options={{headerShown: false}} // Hide the header
-        />
+      <Stack.Screen 
+  name="Main"
+  component={BottomTabNavigator}
+  options={{ headerShown: false }}
+/>
         <Stack.Screen
           name="Login"
           component={Login}
