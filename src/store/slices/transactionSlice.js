@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { generateShortUUID } from '../../utils/uuid';
 
 const transactionSlice = createSlice({
     name: 'transactions',
@@ -9,7 +10,11 @@ const transactionSlice = createSlice({
     },
     reducers: {
         setTransactions: (state, action) => {
-            state.transactions = action.payload;
+            // Sort transactions by date in descending order (newest first)
+            const sortedTransactions = [...action.payload].sort((a, b) =>
+                new Date(b.date) - new Date(a.date)
+            );
+            state.transactions = sortedTransactions;
             state.loading = false;
             state.error = null;
         },
@@ -21,7 +26,13 @@ const transactionSlice = createSlice({
             state.loading = false;
         },
         addTransaction: (state, action) => {
-            state.transactions.unshift(action.payload);
+            const transaction = {
+                ...action.payload,
+                uuid: action.payload.uuid || generateShortUUID(),
+                date: action.payload.date || new Date().toISOString()
+            };
+            // Add new transaction at the beginning of the array
+            state.transactions.unshift(transaction);
         }
     }
 });

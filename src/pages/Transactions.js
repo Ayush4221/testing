@@ -3,35 +3,36 @@ import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, 
 import { useSelector, useDispatch } from 'react-redux';
 import { setTransactions, setLoading, setError } from '../store/slices/transactionSlice';
 import api from '../services/api';
+import { generateShortUUID } from '../utils/uuid';
 
 const dummyTransactions = [
   {
-    id: 1,
+    uuid: generateShortUUID(),
     type: 'credit',
     amount: 1000,
     description: 'Salary Deposit',
     date: new Date().toISOString(),
   },
   {
-    id: 2,
+    uuid: generateShortUUID(),
     type: 'debit',
     amount: 50,
     description: 'Grocery Shopping',
-    date: new Date(Date.now() - 86400000).toISOString(), // yesterday
+    date: new Date(Date.now() - 86400000).toISOString(),
   },
   {
-    id: 3,
+    uuid: generateShortUUID(),
     type: 'credit',
     amount: 200,
     description: 'Freelance Payment',
-    date: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+    date: new Date(Date.now() - 172800000).toISOString(),
   },
   {
-    id: 4,
+    uuid: generateShortUUID(),
     type: 'debit',
     amount: 30,
     description: 'Netflix Subscription',
-    date: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
+    date: new Date(Date.now() - 259200000).toISOString(),
   },
 ];
 
@@ -65,7 +66,12 @@ const Transactions = () => {
 
   const loadDummyData = () => {
     console.log('Loading dummy data into Redux...');
-    dispatch(setTransactions(dummyTransactions));
+    // Ensure each transaction has a UUID
+    const transactionsWithUUID = dummyTransactions.map(transaction => ({
+      ...transaction,
+      uuid: transaction.uuid || generateShortUUID()
+    }));
+    dispatch(setTransactions(transactionsWithUUID));
     Alert.alert(
       "Data Loaded",
       "Transaction data has been loaded into Redux and will persist between sessions.",
@@ -96,7 +102,7 @@ const Transactions = () => {
       </View>
       <Text style={styles.transactionDescription}>{item.description}</Text>
       <Text style={styles.transactionDate}>{new Date(item.date).toLocaleDateString()}</Text>
-      <Text style={styles.transactionId}>ID: {item.id}</Text>
+      <Text style={styles.transactionId}>Transaction ID: {item.uuid}</Text>
     </View>
   );
 
@@ -150,7 +156,7 @@ const Transactions = () => {
         <FlatList
           data={transactions}
           renderItem={renderTransaction}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.uuid}
           contentContainerStyle={styles.listContainer}
         />
       )}

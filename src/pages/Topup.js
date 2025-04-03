@@ -50,7 +50,7 @@ const Topup = () => {
               text: 'OK',
               onPress: () => {
                 setAmount('');
-                navigation.navigate('Home');
+                navigation.goBack();
               }
             }
           ]

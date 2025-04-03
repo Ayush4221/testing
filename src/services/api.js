@@ -1,6 +1,7 @@
 import axios from 'axios';
+import NetInfo from '@react-native-community/netinfo';
 
-const API_BASE_URL = 'http://192.168.1.23:5000/api';
+const API_BASE_URL = 'http://10.138.168.185:5000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,9 +10,15 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to log routes
+// Check network connectivity before making requests
 api.interceptors.request.use(
-  config => {
+  async config => {
+    const networkState = await NetInfo.fetch();
+
+    if (!networkState.isConnected) {
+      return Promise.reject(new Error('No internet connection'));
+    }
+
     console.log(`🚀 API Request: ${config.method.toUpperCase()} ${config.url}`);
     return config;
   },

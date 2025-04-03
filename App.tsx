@@ -1,139 +1,9 @@
-// /**
-//  * Sample React Native App
-//  * https://github.com/facebook/react-native
-//  *
-//  * @format
-//  */
-
-// import React from 'react';
-// import type {PropsWithChildren} from 'react';
-// import {
-//   ScrollView,
-//   StatusBar,
-//   StyleSheet,
-//   Text,
-//   useColorScheme,
-//   View,
-// } from 'react-native';
-
-// import {
-//   Colors,
-//   DebugInstructions,
-//   Header,
-//   LearnMoreLinks,
-//   ReloadInstructions,
-// } from 'react-native/Libraries/NewAppScreen';
-
-// type SectionProps = PropsWithChildren<{
-//   title: string;
-// }>;
-
-// function Section({children, title}: SectionProps): React.JSX.Element {
-//   const isDarkMode = useColorScheme() === 'dark';
-//   return (
-//     <View style={styles.sectionContainer}>
-//       <Text
-//         style={[
-//           styles.sectionTitle,
-//           {
-//             color: isDarkMode ? Colors.white : Colors.black,
-//           },
-//         ]}>
-//         {title}
-//       </Text>
-//       <Text
-//         style={[
-//           styles.sectionDescription,
-//           {
-//             color: isDarkMode ? Colors.light : Colors.dark,
-//           },
-//         ]}>
-//         {children}
-//       </Text>
-//     </View>
-//   );
-// }
-
-// function App(): React.JSX.Element {
-//   const isDarkMode = useColorScheme() === 'dark';
-
-//   const backgroundStyle = {
-//     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-//   };
-
-//   /*
-//    * To keep the template simple and small we're adding padding to prevent view
-//    * from rendering under the System UI.
-//    * For bigger apps the reccomendation is to use `react-native-safe-area-context`:
-//    * https://github.com/AppAndFlow/react-native-safe-area-context
-//    *
-//    * You can read more about it here:
-//    * https://github.com/react-native-community/discussions-and-proposals/discussions/827
-//    */
-//   const safePadding = '5%';
-
-//   return (
-//     <View style={backgroundStyle}>
-//       <StatusBar
-//         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-//         backgroundColor={backgroundStyle.backgroundColor}
-//       />
-//       <ScrollView
-//         style={backgroundStyle}>
-//         <View style={{paddingRight: safePadding}}>
-//           <Header/>
-//         </View>
-//         <View
-//           style={{
-//             backgroundColor: isDarkMode ? Colors.black : Colors.white,
-//             paddingHorizontal: safePadding,
-//             paddingBottom: safePadding,
-//           }}>
-//           <Section title="Step One">
-//             Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-//             screen and then come back to see your edits.
-//           </Section>
-//           <Section title="See Your Changes">
-//             <ReloadInstructions />
-//           </Section>
-//           <Section title="Debug">
-//             <DebugInstructions />
-//           </Section>
-//           <Section title="Learn More">
-//             Read the docs to discover what to do next:
-//           </Section>
-//           <LearnMoreLinks />
-//         </View>
-//       </ScrollView>
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   sectionContainer: {
-//     marginTop: 32,
-//     paddingHorizontal: 24,
-//   },
-//   sectionTitle: {
-//     fontSize: 24,
-//     fontWeight: '600',
-//   },
-//   sectionDescription: {
-//     marginTop: 8,
-//     fontSize: 18,
-//     fontWeight: '400',
-//   },
-//   highlight: {
-//     fontWeight: '700',
-//   },
-// });
-
-// export default App;
-
 import React from 'react';
-
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack'; // Correct import
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useSelector } from 'react-redux';
+// import { RootState } from './src/store/store';
 import Landing from './src/pages/Landing';
 import Login from './src/pages/Login';
 import Signup from './src/pages/Signup';
@@ -145,56 +15,67 @@ import { store, persistor } from './src/store/store';
 import Topup from './src/pages/Topup';
 import WithdrawalScreen from './src/pages/Withdraw';
 import BottomTabNavigator from './src/navigation/BottomTabNavigator';
+import NetworkStatus from './src/components/NetworkStatus';
+import type { RootState } from './src/store/types';
+// import { RootState } from './src/store/store';
 
 const Stack = createNativeStackNavigator();
 
-const App = () => {
+const AppContent = () => {
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+
   return (
     <NavigationContainer>
-      <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-      <Stack.Navigator initialRouteName="Main">
-      <Stack.Screen 
-  name="Main"
-  component={BottomTabNavigator}
-  options={{ headerShown: false }}
-/>
-        <Stack.Screen
-          name="Login"
-          component={Login}
-          options={{headerShown: false}} // Hide the header
-        />
-
+      <NetworkStatus />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {!isAuthenticated ? (
+          // Auth Stack
+          <>
+            <Stack.Screen name="Landing" component={Landing} />
+            <Stack.Screen name="Login" component={Login} />
+            <Stack.Screen name="Signup" component={Signup} />
+            <Stack.Screen name="Biometrics" component={Biometrics} />
+          </>
+        ) : (
+          // Main App Stack
+          <>
+            <Stack.Screen
+              name="Main"
+              component={BottomTabNavigator}
+              options={{ headerShown: false }}
+            />
             <Stack.Screen
               name="Topup"
               component={Topup}
-              options={{ headerShown: false }} // Hide the header
+              options={{
+                presentation: 'modal',
+                headerShown: false
+              }}
             />
             <Stack.Screen
               name="Withdraw"
               component={WithdrawalScreen}
-              options={{ headerShown: false }} // Hide the header
+              options={{
+                presentation: 'modal',
+                headerShown: false
+              }}
             />
-            <Stack.Screen
-              name="Signup"
-              component={Signup}
-              options={{ headerShown: false }} // Hide the header
-            />
-            <Stack.Screen
-              name="Biometrics"
-              component={Biometrics}
-              options={{ headerShown: false }} // Hide the header
-            />
-            <Stack.Screen
-              name="Home"
-              component={Home}
-              options={{ headerShown: false }} // Hide the header
-            />
-          </Stack.Navigator>
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
 
+const App = () => {
+  return (
+    <SafeAreaProvider>
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <AppContent />
         </PersistGate>
       </Provider>
-    </NavigationContainer>
+    </SafeAreaProvider>
   );
 };
 

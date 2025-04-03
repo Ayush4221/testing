@@ -2,43 +2,84 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Alert,
 } from 'react-native';
-import axios from 'axios'; // Import Axios
 import api from '../services/api';
+import SignupForm from '../components/SignupForm';
+import TransactionPinForm from '../components/TransactionPinForm';
+
 const Signup = ({ navigation }) => {
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
     password: '',
-    pin: '',
+    login_pin: '',
     phone_number: '',
   });
+  const [txnPin, setTxnPin] = useState('');
 
   const handleChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async () => {
-    if (!formData.name || !formData.password || !formData.pin || !formData.phone_number) {
+  const handleTxnPinChange = (value) => {
+    setTxnPin(value);
+  };
+
+  const validateFirstStep = () => {
+    if (!formData.name || !formData.password || !formData.login_pin || !formData.phone_number) {
       Alert.alert('Error', 'All fields are required.');
-      return;
+      return false;
     }
-    if (formData.pin.length !== 4) {
-      Alert.alert('Error', 'PIN must be 4 digits.');
-      return;
+    if (formData.login_pin.length !== 4) {
+      Alert.alert('Error', 'login_pin must be 4 digits.');
+      return false;
     }
     if (formData.phone_number.length !== 10) {
       Alert.alert('Error', 'Phone number must be 10 digits.');
+      return false;
+    }
+    return true;
+  };
+
+  const validateSecondStep = () => {
+    if (!txnPin) {
+      Alert.alert('Error', 'Transaction PIN is required.');
+      return false;
+    }
+    if (txnPin.length !== 4) {
+      Alert.alert('Error', 'Transaction PIN must be 4 digits.');
+      return false;
+    }
+    return true;
+  };
+
+  const handleNext = () => {
+    if (validateFirstStep()) {
+      setStep(2);
+    }
+  };
+
+  const handleBack = () => {
+    setStep(1);
+  };
+
+  const handleSubmit = async () => {
+    if (!validateSecondStep()) {
       return;
     }
-    // Remove the test API call and modify the handleSubmit function
-    try {
-      const response = await api.post('/auth/signup', formData);
 
-      if (response.status === 200) {
+    try {
+      const signupData = {
+        ...formData,
+        txn_pin: txnPin
+      };
+
+      const response = await api.post('/auth/signup', signupData);
+
+      if (response.status === 201) {
         Alert.alert('Success', 'Signup successful!');
         navigation.navigate('Home');
       } else {
@@ -54,56 +95,27 @@ const Signup = ({ navigation }) => {
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => navigation.goBack()}
+        onPress={() => step === 2 ? handleBack() : navigation.goBack()}
       >
-        <Text style={styles.backButtonText}>←  Back</Text>
+        <Text style={styles.backButtonText}>←  {step === 2 ? 'Back' : 'Cancel'}</Text>
       </TouchableOpacity>
       <View style={styles.card}>
         <Text style={styles.title}>Signup</Text>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your name"
-            value={formData.name}
-            onChangeText={(value) => handleChange('name', value)}
-          />
-        </View>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your password"
-            secureTextEntry
-            value={formData.password}
-            onChangeText={(value) => handleChange('password', value)}
-          />
-        </View>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>PIN</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter a 4-digit PIN"
-            keyboardType="numeric"
-            maxLength={4}
-            value={formData.pin}
-            onChangeText={(value) => handleChange('pin', value)}
-          />
-        </View>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Phone Number</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your phone number"
-            keyboardType="numeric"
-            maxLength={10}
-            value={formData.phone_number}
-            onChangeText={(value) => handleChange('phone_number', value)}
-          />
-        </View>
-        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Sign Up</Text>
-        </TouchableOpacity>
+        {step === 1 ? (
+          <>
+            <SignupForm formData={formData} handleChange={handleChange} />
+            <TouchableOpacity style={styles.button} onPress={handleNext}>
+              <Text style={styles.buttonText}>Next</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <TransactionPinForm txnPin={txnPin} handleChange={handleTxnPinChange} />
+            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+              <Text style={styles.buttonText}>Complete Signup</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   );
@@ -130,23 +142,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
   },
-  formGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 8,
-  },
-  input: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    backgroundColor: '#F9FAFB',
-  },
   button: {
     backgroundColor: '#000000',
     paddingVertical: 12,
@@ -168,7 +163,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     borderRadius: 8,
-
   },
   backButtonText: {
     fontSize: 16,

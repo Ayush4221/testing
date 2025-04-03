@@ -78,7 +78,7 @@ const WithdrawalScreen = () => {
                             text: 'OK',
                             onPress: () => {
                                 setAmount('');
-                                navigation.navigate('Home');
+                                navigation.goBack();
                             }
                         }
                     ]
