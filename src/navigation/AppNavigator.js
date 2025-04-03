@@ -1,6 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Landing from '../pages/Landing';
+import Transactions from '../screens/Transactions';
 // import Login from '../pages/Login';
 // import Signup from '../pages/Signup';
 // import Home from '../pages/Home';
@@ -11,6 +12,20 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator initialRouteName="Landing">
       <Stack.Screen name="Landing" component={Landing} />
+      <Stack.Screen
+        name="Transactions"
+        component={Transactions}
+        options={{
+          title: 'Transactions',
+          headerStyle: {
+            backgroundColor: '#2196F3',
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+      />
       {/* <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="Signup" component={Signup} />
       <Stack.Screen name="Home" component={Home} /> */}
