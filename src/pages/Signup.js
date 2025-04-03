@@ -7,21 +7,22 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-
+import axios from 'axios'; // Import Axios
+import api from '../sevices/api';
 const Signup = ({ navigation }) => {
   const [formData, setFormData] = useState({
     name: '',
     password: '',
     pin: '',
-    phoneNumber: '',
+    phone_number: '',
   });
 
   const handleChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = () => {
-    if (!formData.name || !formData.password || !formData.pin || !formData.phoneNumber) {
+  const handleSubmit = async () => {
+    if (!formData.name || !formData.password || !formData.pin || !formData.phone_number) {
       Alert.alert('Error', 'All fields are required.');
       return;
     }
@@ -29,17 +30,34 @@ const Signup = ({ navigation }) => {
       Alert.alert('Error', 'PIN must be 4 digits.');
       return;
     }
-    if (formData.phoneNumber.length !== 10) {
+    if (formData.phone_number.length !== 10) {
       Alert.alert('Error', 'Phone number must be 10 digits.');
       return;
     }
-    console.log('Form Data Submitted:', formData);
-    // Add your signup logic here
-    navigation.navigate('Home'); // Navigate to Home screen after signup
+  // Remove the test API call and modify the handleSubmit function
+try {
+  const response = await api.post('/auth/signup', formData);
+  
+  if (response.status === 200) {
+    Alert.alert('Success', 'Signup successful!');
+    navigation.navigate('Home');
+  } else {
+    Alert.alert('Error', 'Something went wrong. Please try again.');
+  }
+} catch (error) {
+  console.error('Signup Error:', error.response?.data || error.message);
+  Alert.alert('Error', 'Failed to sign up. Please try again.');
+}
   };
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity 
+        style={styles.backButton} 
+        onPress={() => navigation.goBack()}
+      >
+        <Text style={styles.backButtonText}>←  Back</Text>
+      </TouchableOpacity>
       <View style={styles.card}>
         <Text style={styles.title}>Signup</Text>
         <View style={styles.formGroup}>
@@ -79,8 +97,8 @@ const Signup = ({ navigation }) => {
             placeholder="Enter your phone number"
             keyboardType="numeric"
             maxLength={10}
-            value={formData.phoneNumber}
-            onChangeText={(value) => handleChange('phoneNumber', value)}
+            value={formData.phone_number}
+            onChangeText={(value) => handleChange('phone_number', value)}
           />
         </View>
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
@@ -94,7 +112,6 @@ const Signup = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
@@ -102,14 +119,9 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 4,
   },
   title: {
     fontSize: 24,
@@ -146,6 +158,22 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 8,
+   
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
   },
 });
 

@@ -7,19 +7,24 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import api from '../sevices/api';
+import { useDispatch } from 'react-redux';
+import { loginSuccess, loginFailure } from '../store/slices/authSlice';
 
 const Login = ({ navigation }) => {
   const [formData, setFormData] = useState({
-    username: '',
+    phone_number: '',
     password: '',
   });
+
+  const dispatch = useDispatch();
 
   const handleChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = () => {
-    if (formData.username.length !== 10) {
+  const handleSubmit = async () => {
+    if (formData.phone_number.length !== 10) {
       Alert.alert('Error', 'Phone number must be 10 digits.');
       return;
     }
@@ -27,9 +32,22 @@ const Login = ({ navigation }) => {
       Alert.alert('Error', 'Password is required.');
       return;
     }
-    console.log('Login Data Submitted:', formData);
-    // Add your login logic here
-    navigation.navigate('Home'); // Navigate to Home screen after login
+
+    try {
+      const response = await api.post('/auth/login', {
+        phone_number: formData.phone_number,
+        password: formData.password
+      });
+
+      if (response.status === 200) {
+        dispatch(loginSuccess(response.data.user));
+        Alert.alert('Success', 'Login successful!');
+        navigation.navigate('Home');
+      }
+    } catch (error) {
+      dispatch(loginFailure(error.message));
+      Alert.alert('Error', 'Failed to login. Please try again.');
+    }
   };
 
   return (
@@ -43,8 +61,8 @@ const Login = ({ navigation }) => {
             placeholder="Enter your phone number"
             keyboardType="numeric"
             maxLength={10}
-            value={formData.username}
-            onChangeText={(value) => handleChange('username', value)}
+            value={formData.phone_number}
+            onChangeText={(value) => handleChange('phone_number', value)}
           />
         </View>
         <View style={styles.formGroup}>
@@ -68,7 +86,6 @@ const Login = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
@@ -76,14 +93,8 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
   },
   title: {
     fontSize: 24,

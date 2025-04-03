@@ -139,12 +139,17 @@ import Login from './src/pages/Login';
 import Signup from './src/pages/Signup';
 import Biometrics from './src/pages/Biomet';
 import Home from './src/pages/Home';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './src/store/store';
 
 const Stack = createNativeStackNavigator();
 
 const App = () => {
   return (
     <NavigationContainer>
+      <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
       <Stack.Navigator initialRouteName="Main">
         <Stack.Screen
           name="Main"
@@ -173,6 +178,8 @@ const App = () => {
         />
       </Stack.Navigator>
       
+    </PersistGate>
+    </Provider>
     </NavigationContainer>
   );
 };

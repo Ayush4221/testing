@@ -1,17 +1,36 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
 
 const Home = ({ navigation }) => {
-  const user = {
-    name: 'John Doe',
-    balance: 1250.75,
-  };
+  // Get user data from Redux store
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const state = useSelector((state) => state);
+  
+  // Log the entire Redux state
+  console.log('Redux State:', state);
+    
+  // Redirect to login if not authenticated
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      navigation.replace('Login');
+    }
+  }, [isAuthenticated]);
 
   const transactions = [
     { id: 1, description: 'Grocery Shopping', amount: -50.0, date: '2025-04-01' },
     { id: 2, description: 'Salary', amount: 1500.0, date: '2025-03-30' },
     { id: 3, description: 'Electricity Bill', amount: -100.0, date: '2025-03-28' },
   ];
+
+  // If no user data, show loading or return null
+  if (!user) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -24,9 +43,10 @@ const Home = ({ navigation }) => {
       <View style={styles.userInfo}>
         <View>
           <Text style={styles.userName}>Hi, {user.name}</Text>
+          <Text style={styles.phoneNumber}>{user.phone_number}</Text>
           <Text style={styles.balanceLabel}>Available Balance</Text>
         </View>
-        <Text style={styles.balance}>₹{user.balance.toFixed(2)}</Text>
+        <Text style={styles.balance}>₹{user.balance || '0.00'}</Text>
       </View>
 
       {/* Action Buttons */}
@@ -99,6 +119,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1F2937',
   },
+  phoneNumber: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 2,
+  },
   balanceLabel: {
     fontSize: 14,
     color: '#6B7280',
@@ -169,6 +194,11 @@ const styles = StyleSheet.create({
   },
   negativeAmount: {
     color: '#EF4444',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

@@ -39,7 +39,7 @@ const Landing = ({ navigation }) => {
           >
             <Text style={styles.signupButtonText}>Signup</Text>
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.signupButton}
             onPress={() => navigation.navigate('Biometrics')}
           >
@@ -50,7 +50,7 @@ const Landing = ({ navigation }) => {
             onPress={() => navigation.navigate('Home')}
           >
             <Text style={styles.signupButtonText}>Home</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </View>
