@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import api from '../sevices/api';
+import api from '../services/api';
 import { useDispatch } from 'react-redux';
 import { loginSuccess, loginFailure } from '../store/slices/authSlice';
 

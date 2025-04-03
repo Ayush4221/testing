@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
-import api from '../sevices/api';
+import api from '../services/api';
 
 const Home = ({ navigation }) => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
   console.log('user', user);
-  
+
   const [balance, setBalance] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -21,7 +21,7 @@ const Home = ({ navigation }) => {
       try {
         console.log(user.id);
         if (user?.id) {
-          
+
           const response = await api.get(`balances/get_balance/${user.id}`);
           console.log('Balance response:', response.data);
           if (response.data.success) {
@@ -41,7 +41,7 @@ const Home = ({ navigation }) => {
 
   console.log('Balance:', balance);
   // Sample transaction data
-  
+
   const transactions = [
     { id: 1, description: 'Grocery Shopping', amount: -50.0, date: '2025-04-01' },
     { id: 2, description: 'Salary', amount: 1500.0, date: '2025-03-30' },
@@ -81,7 +81,7 @@ const Home = ({ navigation }) => {
 
       {/* Action Buttons */}
       <View style={styles.actionButtons}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate('Topup')}
         >
@@ -90,7 +90,8 @@ const Home = ({ navigation }) => {
         <TouchableOpacity style={styles.button}>
           <Text style={styles.buttonText}>Send</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button}
+          onPress={() => navigation.navigate('Withdraw')}>
           <Text style={styles.buttonText}>Withdraw</Text>
         </TouchableOpacity>
       </View>
