@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import api from '../sevices/api';
+import api from '../services/api';
 
 const Topup = () => {
   const navigation = useNavigation();
@@ -17,11 +17,11 @@ const Topup = () => {
   const [loading, setLoading] = useState(false);
   const { user, isAuthenticated } = useSelector((state) => state.auth);
 
-//   useEffect(() => {
-//     if (!isAuthenticated) {
-//       navigation.replace('Login');
-//     }
-//   }, [isAuthenticated]);
+  //   useEffect(() => {
+  //     if (!isAuthenticated) {
+  //       navigation.replace('Login');
+  //     }
+  //   }, [isAuthenticated]);
 
   const handleTopup = async () => {
     if (!amount || parseFloat(amount) <= 0) {
@@ -66,7 +66,7 @@ const Topup = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Top Up Balance</Text>
-      
+
       <TextInput
         style={styles.input}
         placeholder="Enter amount"
@@ -75,7 +75,7 @@ const Topup = () => {
         onChangeText={setAmount}
       />
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.button}
         onPress={handleTopup}
         disabled={loading}
@@ -85,7 +85,7 @@ const Topup = () => {
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.cancelButton}
         onPress={() => navigation.goBack()}
       >
