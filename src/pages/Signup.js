@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import axios from 'axios'; // Import Axios
-import api from '../sevices/api';
+import api from '../services/api';
 const Signup = ({ navigation }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -34,26 +34,26 @@ const Signup = ({ navigation }) => {
       Alert.alert('Error', 'Phone number must be 10 digits.');
       return;
     }
-  // Remove the test API call and modify the handleSubmit function
-try {
-  const response = await api.post('/auth/signup', formData);
-  
-  if (response.status === 200) {
-    Alert.alert('Success', 'Signup successful!');
-    navigation.navigate('Home');
-  } else {
-    Alert.alert('Error', 'Something went wrong. Please try again.');
-  }
-} catch (error) {
-  console.error('Signup Error:', error.response?.data || error.message);
-  Alert.alert('Error', 'Failed to sign up. Please try again.');
-}
+    // Remove the test API call and modify the handleSubmit function
+    try {
+      const response = await api.post('/auth/signup', formData);
+
+      if (response.status === 200) {
+        Alert.alert('Success', 'Signup successful!');
+        navigation.navigate('Home');
+      } else {
+        Alert.alert('Error', 'Something went wrong. Please try again.');
+      }
+    } catch (error) {
+      console.error('Signup Error:', error.response?.data || error.message);
+      Alert.alert('Error', 'Failed to sign up. Please try again.');
+    }
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity 
-        style={styles.backButton} 
+      <TouchableOpacity
+        style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
         <Text style={styles.backButtonText}>←  Back</Text>
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     borderRadius: 8,
-   
+
   },
   backButtonText: {
     fontSize: 16,

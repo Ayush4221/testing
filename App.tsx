@@ -132,8 +132,8 @@
 
 import React from 'react';
 
-import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack'; // Correct import
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack'; // Correct import
 import Landing from './src/pages/Landing';
 import Login from './src/pages/Login';
 import Signup from './src/pages/Signup';
@@ -143,6 +143,7 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './src/store/store';
 import Topup from './src/pages/Topup';
+import WithdrawalScreen from './src/pages/Withdraw';
 import BottomTabNavigator from './src/navigation/BottomTabNavigator';
 
 const Stack = createNativeStackNavigator();
@@ -164,33 +165,35 @@ const App = () => {
           options={{headerShown: false}} // Hide the header
         />
 
-        <Stack.Screen
-          name="Topup"
-          component={Topup}
-          options={{headerShown: false}} // Hide the header
-        />
+            <Stack.Screen
+              name="Topup"
+              component={Topup}
+              options={{ headerShown: false }} // Hide the header
+            />
+            <Stack.Screen
+              name="Withdraw"
+              component={WithdrawalScreen}
+              options={{ headerShown: false }} // Hide the header
+            />
+            <Stack.Screen
+              name="Signup"
+              component={Signup}
+              options={{ headerShown: false }} // Hide the header
+            />
+            <Stack.Screen
+              name="Biometrics"
+              component={Biometrics}
+              options={{ headerShown: false }} // Hide the header
+            />
+            <Stack.Screen
+              name="Home"
+              component={Home}
+              options={{ headerShown: false }} // Hide the header
+            />
+          </Stack.Navigator>
 
-
-
-        <Stack.Screen
-          name="Signup"
-          component={Signup}
-          options={{headerShown: false}} // Hide the header
-        />
-        <Stack.Screen
-          name="Biometrics"
-          component={Biometrics}
-          options={{headerShown: false}} // Hide the header
-        />
-         <Stack.Screen
-          name="Home"
-          component={Home}
-          options={{headerShown: false}} // Hide the header
-        />
-      </Stack.Navigator>
-      
-    </PersistGate>
-    </Provider>
+        </PersistGate>
+      </Provider>
     </NavigationContainer>
   );
 };
