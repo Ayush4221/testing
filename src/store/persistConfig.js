@@ -4,5 +4,5 @@ import { persistReducer } from 'redux-persist';
 export const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth'] // only auth will be persisted
+  whitelist: ['auth', 'transactions'] // persist both auth and transactions
 };
