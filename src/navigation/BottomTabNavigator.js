@@ -9,6 +9,7 @@ import Transactions from '../pages/Transactions';
 import ScanQR from '../pages/ScanQR';
 import Notifications from '../pages/Notifications';
 import Settings from '../pages/Settings';
+// import Settings from '../pages/SendMoney';
 
 const Tab = createBottomTabNavigator();
 

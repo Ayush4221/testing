@@ -50,7 +50,7 @@ const Topup = () => {
               text: 'OK',
               onPress: () => {
                 setAmount('');
-                navigation.goBack();
+                navigation.navigate('Main');
               }
             }
           ]
@@ -87,7 +87,7 @@ const Topup = () => {
 
       <TouchableOpacity
         style={styles.cancelButton}
-        onPress={() => navigation.goBack()}
+        onPress={() => navigation.navigate('Main')}
       >
         <Text style={styles.cancelButtonText}>Cancel</Text>
       </TouchableOpacity>

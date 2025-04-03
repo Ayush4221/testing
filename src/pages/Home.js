@@ -23,6 +23,8 @@ const Home = ({ navigation }) => {
         if (user?.id) {
 
           const response = await api.get(`balances/get_balance/${user.id}`);
+          console.log('response', response);
+
           console.log('Balance response:', response.data);
           if (response.data.success) {
             setBalance(response.data.data.balance);
