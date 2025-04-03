@@ -142,6 +142,7 @@ import Home from './src/pages/Home';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './src/store/store';
+import Topup from './src/pages/Topup';
 
 const Stack = createNativeStackNavigator();
 
@@ -161,6 +162,15 @@ const App = () => {
           component={Login}
           options={{headerShown: false}} // Hide the header
         />
+
+        <Stack.Screen
+          name="Topup"
+          component={Topup}
+          options={{headerShown: false}} // Hide the header
+        />
+
+
+
         <Stack.Screen
           name="Signup"
           component={Signup}

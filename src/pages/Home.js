@@ -1,29 +1,53 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
+import api from '../sevices/api';
 
 const Home = ({ navigation }) => {
-  // Get user data from Redux store
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-  const state = useSelector((state) => state);
+  console.log('user', user);
   
-  // Log the entire Redux state
-  console.log('Redux State:', state);
-    
-  // Redirect to login if not authenticated
-  React.useEffect(() => {
+  const [balance, setBalance] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
     if (!isAuthenticated) {
       navigation.replace('Login');
     }
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        console.log(user.id);
+        if (user?.id) {
+          
+          const response = await api.get(`balances/get_balance/${user.id}`);
+          console.log('Balance response:', response.data);
+          if (response.data.success) {
+            setBalance(response.data.data.balance);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching balance:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBalance();
+  }, [user]);
+
+
+  console.log('Balance:', balance);
+  // Sample transaction data
+  
   const transactions = [
     { id: 1, description: 'Grocery Shopping', amount: -50.0, date: '2025-04-01' },
     { id: 2, description: 'Salary', amount: 1500.0, date: '2025-03-30' },
     { id: 3, description: 'Electricity Bill', amount: -100.0, date: '2025-03-28' },
   ];
 
-  // If no user data, show loading or return null
   if (!user) {
     return (
       <View style={styles.loadingContainer}>
@@ -42,16 +66,25 @@ const Home = ({ navigation }) => {
       {/* User Info & Balance */}
       <View style={styles.userInfo}>
         <View>
-          <Text style={styles.userName}>Hi, {user.name}</Text>
-          <Text style={styles.phoneNumber}>{user.phone_number}</Text>
+          <Text style={styles.userName}>Hi, {user?.name}</Text>
+          <Text style={styles.phoneNumber}>{user?.phone_number}</Text>
           <Text style={styles.balanceLabel}>Available Balance</Text>
         </View>
-        <Text style={styles.balance}>₹{user.balance || '0.00'}</Text>
+        {loading ? (
+          <ActivityIndicator size="small" color="#000000" />
+        ) : (
+          <Text style={styles.balance}>
+            ₹{balance?.toFixed(2) || '0.00'}
+          </Text>
+        )}
       </View>
 
       {/* Action Buttons */}
       <View style={styles.actionButtons}>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity 
+          style={styles.button}
+          onPress={() => navigation.navigate('Topup')}
+        >
           <Text style={styles.buttonText}>Top Up</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button}>
