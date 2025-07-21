@@ -63,6 +63,12 @@ const Home = ({ navigation }) => {
       {/* Header Section */}
       <View style={styles.header}>
         <Image source={require('../assets/langingpage/Logo.png')} style={styles.logo} />
+        <TouchableOpacity
+          style={styles.qrButton}
+          onPress={() => navigation.navigate('QRGenerator')}
+        >
+          <Text style={styles.qrIcon}>QR</Text>
+        </TouchableOpacity>
       </View>
 
       {/* User Info & Balance */}
@@ -129,12 +135,24 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
   logo: {
     height: 40,
     resizeMode: 'contain',
+  },
+  qrButton: {
+    padding: 8,
+    backgroundColor: '#000000',
+    borderRadius: 8,
+  },
+  qrIcon: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   userInfo: {
     backgroundColor: '#FFFFFF',

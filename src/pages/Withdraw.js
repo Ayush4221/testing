@@ -6,20 +6,44 @@ import {
     TouchableOpacity,
     StyleSheet,
     Alert,
-    ActivityIndicator
+    ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    Image
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import api from '../services/api';
 
+const generateTransactionId = () => {
+    const timestamp = Date.now().toString();
+    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `TXN${timestamp}${random}`;
+};
+
 const WithdrawalScreen = () => {
     const [amount, setAmount] = useState('');
     const [loading, setLoading] = useState(false);
     const [balance, setBalance] = useState(null);
-    const [userId, setUserId] = useState('');
+    const [selectedAmount, setSelectedAmount] = useState(null);
 
     const navigation = useNavigation();
     const { user, isAuthenticated } = useSelector((state) => state.auth);
+
+    // Predefined amounts
+    const getWithdrawalAmounts = () => {
+        if (!balance) return [100, 200, 500, 1000];
+
+        // Create amounts based on available balance
+        const maxAmount = Math.floor(balance);
+        if (maxAmount >= 1000) return [100, 200, 500, 1000];
+        if (maxAmount >= 500) return [100, 200, 300, 500];
+        if (maxAmount >= 200) return [50, 100, 150, 200];
+        if (maxAmount >= 100) return [25, 50, 75, 100];
+        return [Math.floor(maxAmount / 4), Math.floor(maxAmount / 2), Math.floor(maxAmount * 0.75), maxAmount];
+    };
 
     // Authentication check
     useEffect(() => {
@@ -34,7 +58,6 @@ const WithdrawalScreen = () => {
             if (user?.id) {
                 setLoading(true);
                 const response = await api.get(`balances/get_balance/${user.id}`);
-                console.log('Balance response:', response.data);
                 if (response.data.success) {
                     setBalance(response.data.data.balance);
                 }
@@ -50,174 +73,338 @@ const WithdrawalScreen = () => {
     useEffect(() => {
         if (user && user.id) {
             fetchBalance();
-            setUserId(user.id);
         }
     }, [user]);
 
+    const handleAmountSelect = (value) => {
+        setSelectedAmount(value);
+        setAmount(value.toString());
+    };
+
+    const handleCustomAmount = (text) => {
+        setAmount(text);
+        setSelectedAmount(null);
+    };
+
     const handleWithdrawal = async () => {
-        // Basic validation
-        if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
-            Alert.alert('Error', 'Amount must be positive');
+        const valueToWithdraw = selectedAmount || parseFloat(amount);
+
+        if (!valueToWithdraw || valueToWithdraw <= 0) {
+            Alert.alert('Error', 'Please enter a valid amount');
+            return;
+        }
+
+        if (valueToWithdraw > balance) {
+            Alert.alert('Error', 'Withdrawal amount exceeds available balance');
+            return;
+        }
+
+        if (!user?.id) {
+            Alert.alert('Error', 'User not authenticated');
             return;
         }
 
         setLoading(true);
-
         try {
-            const response = await api.post(`balances/withdraw`, {
+            const transaction_id = generateTransactionId();
+
+            const response = await api.post('/balances/withdraw', {
                 user_id: user.id,
-                amount: parseFloat(amount)
+                amount: valueToWithdraw,
+                transaction_id: transaction_id
             });
 
             if (response.data.success) {
-                Alert.alert(
-                    'Success',
-                    `Withdrawal of ₹${amount} successful. Your new balance is ₹${response.data.data.current_balance}`,
-                    [
-                        {
-                            text: 'OK',
-                            onPress: () => {
-                                setAmount('');
-                                navigation.navigate('Main');
-                            }
-                        }
-                    ]
-                );
-                setBalance(response.data.data.current_balance);
-            } else {
-                Alert.alert('Error', response.data.message || 'Failed to process withdrawal');
+                // Navigate to receipt page with success
+                navigation.navigate('Main');
             }
         } catch (error) {
-            Alert.alert('Error', 'Network error, please try again later');
-            console.error(error);
+            Alert.alert('Error', error.response?.data?.message || 'Failed to withdraw funds');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Withdraw Funds</Text>
-
-            {balance !== null && (
-                <View style={styles.balanceContainer}>
-                    <Text style={styles.balanceLabel}>Available Balance:</Text>
-                    <Text style={styles.balanceAmount}>₹{balance.toFixed(2)}</Text>
-                </View>
-            )}
-
-            <View style={styles.formGroup}>
-                <Text style={styles.label}>Withdrawal Amount</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Enter amount"
-                    keyboardType="numeric"
-                    value={amount}
-                    onChangeText={setAmount}
-                    editable={!loading}
-                />
-            </View>
-
-            <TouchableOpacity
-                style={[styles.button, loading && styles.buttonDisabled]}
-                onPress={handleWithdrawal}
-                disabled={loading}
+        <SafeAreaView style={styles.safeArea}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.container}
             >
-                {loading ? (
-                    <ActivityIndicator color="#fff" />
-                ) : (
-                    <Text style={styles.buttonText}>Withdraw</Text>
-                )}
-            </TouchableOpacity>
+                <ScrollView contentContainerStyle={styles.scrollContent}>
+                    {/* Header with back button and QR icon */}
+                    <View style={styles.header}>
+                        <TouchableOpacity
+                            style={styles.backButton}
+                            onPress={() => navigation.goBack()}
+                        >
+                            <Text style={styles.backButtonText}>←</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>Withdraw Money</Text>
+                        <TouchableOpacity
+                            style={styles.qrButton}
+                            onPress={() => navigation.navigate('QRGenerator')}
+                        >
+                            <Text style={styles.qrButtonText}>QR</Text>
+                        </TouchableOpacity>
+                    </View>
 
-            <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => navigation.navigate('Main')}
-            >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
+                    {/* Amount selection */}
+                    <Text style={styles.sectionTitle}>Select Amount</Text>
 
-            <Text style={styles.disclaimer}>
-                Withdrawals are processed immediately. Please ensure you have sufficient balance.
-            </Text>
-        </View>
+                    <View style={styles.amountGrid}>
+                        {getWithdrawalAmounts().map((value) => (
+                            <TouchableOpacity
+                                key={value}
+                                style={[
+                                    styles.amountButton,
+                                    selectedAmount === value && styles.selectedAmount,
+                                    value > balance && styles.disabledAmount
+                                ]}
+                                onPress={() => handleAmountSelect(value)}
+                                disabled={value > balance}
+                            >
+                                <Text
+                                    style={[
+                                        styles.amountButtonText,
+                                        selectedAmount === value && styles.selectedAmountText,
+                                        value > balance && styles.disabledAmountText
+                                    ]}
+                                >
+                                    ₹{value}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+
+                    <Text style={styles.sectionTitle}>Or Enter Custom Amount</Text>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.rupeesSymbol}>₹</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="0.00"
+                            keyboardType="numeric"
+                            value={amount}
+                            onChangeText={handleCustomAmount}
+                        />
+                    </View>
+
+                    <TouchableOpacity
+                        style={[styles.withdrawButton, loading && styles.buttonDisabled]}
+                        onPress={handleWithdrawal}
+                        disabled={loading || !balance || balance <= 0}
+                    >
+                        <Text style={styles.withdrawButtonText}>
+                            {loading ? 'Processing...' : 'Withdraw Money'}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                    </TouchableOpacity>
+
+                    <Text style={styles.disclaimer}>
+                        Withdrawals are processed immediately. Please ensure you have sufficient balance.
+                    </Text>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#F3F4F6',
+    },
     container: {
         flex: 1,
-        padding: 20,
-        backgroundColor: '#fff',
     },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        textAlign: 'center',
+    scrollContent: {
+        padding: 16,
     },
-    balanceContainer: {
-        backgroundColor: '#f0f8ff',
-        padding: 15,
-        borderRadius: 8,
-        marginBottom: 25,
+    header: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 24,
     },
-    balanceLabel: {
-        fontSize: 16,
-        fontWeight: '500',
+    backButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#FFFFFF',
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
     },
-    balanceAmount: {
+    backButtonText: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#000000',
+    },
+    headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
+        color: '#1F2937',
     },
-    formGroup: {
-        marginBottom: 20,
+    qrButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#FFFFFF',
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
     },
-    label: {
+    qrButtonText: {
         fontSize: 16,
-        marginBottom: 8,
-        fontWeight: '500',
+        fontWeight: 'bold',
+        color: '#000000',
+    },
+    cardContainer: {
+        backgroundColor: '#000000',
+        borderRadius: 16,
+        padding: 24,
+        marginBottom: 24,
+        alignItems: 'center',
+    },
+    cardImage: {
+        height: 40,
+        width: 120,
+        marginBottom: 16,
+        tintColor: '#FFFFFF',
+    },
+    balanceText: {
+        fontSize: 14,
+        color: 'rgba(255, 255, 255, 0.7)',
+        marginBottom: 4,
+    },
+    amountText: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+    },
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#1F2937',
+        marginBottom: 12,
+    },
+    amountGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginBottom: 24,
+    },
+    amountButton: {
+        width: '48%',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 12,
+        padding: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 1,
+    },
+    selectedAmount: {
+        backgroundColor: '#000000',
+        borderColor: '#000000',
+    },
+    disabledAmount: {
+        opacity: 0.5,
+        backgroundColor: '#F3F4F6',
+    },
+    amountButtonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#1F2937',
+    },
+    selectedAmountText: {
+        color: '#FFFFFF',
+    },
+    disabledAmountText: {
+        color: '#9CA3AF',
+    },
+    inputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 12,
+        marginBottom: 24,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 1,
+    },
+    rupeesSymbol: {
+        fontSize: 18,
+        color: '#1F2937',
+        paddingLeft: 16,
     },
     input: {
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        padding: 12,
+        flex: 1,
+        paddingVertical: 16,
+        paddingHorizontal: 8,
         fontSize: 16,
+        color: '#1F2937',
     },
-    button: {
-        backgroundColor: '#3498db',
-        borderRadius: 8,
-        padding: 15,
+    withdrawButton: {
+        backgroundColor: '#000000',
+        borderRadius: 12,
+        padding: 16,
         alignItems: 'center',
-        marginTop: 10,
-        marginBottom: 10,
+        marginBottom: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     buttonDisabled: {
-        backgroundColor: '#95a5a6',
+        backgroundColor: '#9CA3AF',
     },
-    buttonText: {
-        color: 'white',
-        fontWeight: 'bold',
+    withdrawButtonText: {
+        color: '#FFFFFF',
         fontSize: 16,
+        fontWeight: 'bold',
     },
     cancelButton: {
-        padding: 15,
-        borderRadius: 8,
+        padding: 12,
         alignItems: 'center',
     },
     cancelButtonText: {
-        color: '#3498db',
-        fontSize: 16,
+        color: '#6B7280',
+        fontSize: 14,
+        fontWeight: '500',
     },
     disclaimer: {
-        marginTop: 20,
+        marginTop: 16,
         textAlign: 'center',
-        color: '#7f8c8d',
-        fontSize: 14,
+        color: '#6B7280',
+        fontSize: 12,
+        lineHeight: 16,
     }
 });
 

@@ -18,7 +18,9 @@ import BottomTabNavigator from './src/navigation/BottomTabNavigator';
 import NetworkStatus from './src/components/NetworkStatus';
 import type { RootState } from './src/store/types';
 import SendMoney from './src/pages/SendMoney';
+import QRGenerator from './src/pages/QRGenerator';
 // import { RootState } from './src/store/store';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -68,7 +70,20 @@ const AppContent = () => {
                 presentation: 'modal',
                 headerShown: false
               }}
+
+
             />
+            <Stack.Screen
+              name="QRGenerator"
+              component={QRGenerator}
+              options={{
+                presentation: 'modal',
+                headerShown: false
+              }}
+
+
+            />
+
           </>
         )}
       </Stack.Navigator>
